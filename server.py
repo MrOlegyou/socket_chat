@@ -1,34 +1,44 @@
-import socket
+from _thread import *
 import threading
+import socket
 
 sock = socket.socket()
 sock.bind(('', 9090))
-sock.listen(1)
+sock.listen()
 
-conn, addr = sock.accept()
+def start_new_connection(conn, addr):
+    thread1 = threading.Thread(target=send_message)
+    thread2 = threading.Thread(target=receive_message, args=(conn, addr))
 
-print(addr, "присоединился")
+    thread1.start()
+    thread2.start()
+    
+    thread1.join()
+    thread2.join()
 
-def receive_message():
+def receive_message(conn, addr):
     while True:
-        data = conn.recv(1024).decode()
-        if not data:
-            print(addr, "отсоединился")
+        try:
+            data = conn.recv(1024).decode()
+        except:
+            print("Пользователь {0}:{1} отсоединился!".format(addr[0], addr[1]))
             break
-        print(data)
+        print("Пользователь {0}:{1} пишет: {2}".format(addr[0], addr[1], data))
 
 def send_message():
     while True:
         message_text = input("Введите сообщение сервера: ")
-        conn.send(message_text.encode())
+        for conn in clients_list:
+            conn.send(message_text.encode())
 
-thread1 = threading.Thread(target=send_message)
-thread2 = threading.Thread(target=receive_message)
+clients_list = []
 
-thread1.start()
-thread2.start()
+print("Сервер запущен!")
 
-thread1.join()
-thread2.join()
+while True:
+    conn, addr = sock.accept()
+    clients_list.append(conn)
+    print("Пользователь {0}:{1} присоединился к чату!".format(addr[0], addr[1]))
+    start_new_thread(start_new_connection, (conn, addr))
 
 conn.close()

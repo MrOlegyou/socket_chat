@@ -7,14 +7,12 @@ sock.connect(('localhost', 9090))
 def send_message():
     while True:
         message_text = input("Введите сообщение клиента: ")
-        if message_text == "stop":
-            break
         sock.send(message_text.encode())
 
 def receive_message():
     while True:
         data = sock.recv(1024).decode()
-        print(data)
+        print("Сервер пишет: {}".format(data))
 
 thread1 = threading.Thread(target=send_message)
 thread2 = threading.Thread(target=receive_message)
