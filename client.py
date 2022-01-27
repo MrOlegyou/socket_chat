@@ -1,26 +1,40 @@
-import socket
-import threading
+from socket import socket
+from threading import Thread
 
-sock = socket.socket()
-sock.connect(('localhost', 9090))
+class Client():
 
-def send_message():
-    while True:
-        message_text = input("Введите сообщение клиента: ")
-        sock.send(message_text.encode())
+    def __init__(self):
+        self.sock = socket()
+        self.SERVER_IP = 'localhost'
+        self.SERVER_PORT = 9090
 
-def receive_message():
-    while True:
-        data = sock.recv(1024).decode()
-        print("Сервер пишет: {}".format(data))
 
-thread1 = threading.Thread(target=send_message)
-thread2 = threading.Thread(target=receive_message)
+    def send_message(self):
+        while True:
+            message_text = input("Введите сообщение клиента: ")
+            self.sock.send(message_text.encode())
 
-thread1.start()
-thread2.start()
 
-thread1.join()
-thread2.join()
+    def receive_message(self):
+        while True:
+            try:
+                data = self.sock.recv(1024).decode()
+            except:
+                print("Сервер отсоединился!")
+                break        
+            print(data)
 
-sock.close()
+
+    def start_client(self): 
+        self.sock.connect((self.SERVER_IP, self.SERVER_PORT))
+
+        thread1 = Thread(target=self.receive_message)
+        thread2 = Thread(target=self.send_message)
+
+        thread1.start()
+        thread2.start()
+
+        thread1.join()
+        thread2.join()
+
+        self.sock.close()
