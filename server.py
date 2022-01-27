@@ -28,6 +28,7 @@ class Server():
                 data = conn.recv(1024).decode()
             except:
                 print("Пользователь {0}:{1} отсоединился!".format(addr[0], addr[1]))
+                self.clients_list.remove(conn)
                 break
             user_message = "Пользователь {0}:{1} пишет: {2}".format(addr[0], addr[1], data)
             print(user_message)
